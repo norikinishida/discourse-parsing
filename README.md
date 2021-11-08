@@ -112,7 +112,7 @@ In training (and evaluation), please set ```use_edu_head_information = false``` 
 
 Experiment configurations are found in `./config` (e.g., `arcfactored.conf` and `shiftreduce.conf`).
 You can also add your own configuration.
-Choose an configuration name (e.g., `biaffine_scibert_scidtb`), and run
+Choose a configuration name (e.g., `biaffine_scibert_scidtb`), and run
 
 ```
 python main_<parser_type>.py --gpu <gpu_id> --config <config_name> --actiontype train
