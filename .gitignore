@@ -1,0 +1,8 @@
+*.pyc
+j0*.sh*
+j_*.sh*
+job*.sh*
+raiden*
+*sh.o*
+tmp*
+temp*
