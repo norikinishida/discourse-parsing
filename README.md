@@ -38,7 +38,7 @@ See `./run_preprocessing1.sh` and `./run_preprocessing2.sh` for more detailed ex
 
 ### JSON format (RST-DT, wsj\_0644)
 
-```
+```json
 {
     "edus": [
         {
@@ -78,7 +78,7 @@ See `./run_preprocessing1.sh` and `./run_preprocessing2.sh` for more detailed ex
 
 You can use JSON files without syntactic features (i.e., "postags", "arcs", and "head" keys in each EDU entry) and paragraph boundaries ("paragraph_boundaries" key), as follows:
 
-```
+```json
 {
     "edus": [
         {
