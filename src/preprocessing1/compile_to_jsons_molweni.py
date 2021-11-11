@@ -51,11 +51,11 @@ def main(args):
         dictionary["edus"] = edus
 
         # Sentence boundaries
-        sentence_boundaries = utils.read_lines(path_sentence_boundaries)
+        sentence_boundaries = utils.read_lines(path_sentence_boundaries)[0]
         dictionary["sentence_boundaries"] = sentence_boundaries
 
         # Paragraph boundaries
-        paragraph_boundaries = utils.read_lines(path_paragraph_boundaries)
+        paragraph_boundaries = utils.read_lines(path_paragraph_boundaries)[0]
         dictionary["paragraph_boundaries"] = paragraph_boundaries
 
         # Dependency tree

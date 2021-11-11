@@ -97,10 +97,10 @@ def preprocess(tokenizer_wrapper, split):
     n_edus = 0
     for data in dataset:
         n_edus += len(data.edus[1:]) # Exclude the ROOT
-    utils.writelog("# of documents=%d" % n_docs)
-    utils.writelog("# of paragraphs=%d" % n_paras)
-    utils.writelog("# of sentences=%d" % n_sents)
-    utils.writelog("# of EDUs (w/o ROOTs)=%d" % n_edus)
+    utils.writelog("# of documents: %d" % n_docs)
+    utils.writelog("# of paragraphs: %d" % n_paras)
+    utils.writelog("# of sentences: %d" % n_sents)
+    utils.writelog("# of EDUs (w/o ROOTs): %d" % n_edus)
 
     return dataset
 

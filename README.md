@@ -36,44 +36,41 @@ Overall steps:
 
 See `./run_preprocessing1.sh` and `./run_preprocessing2.sh` for more detailed examples on Step 1-3 and Step 4, respectively.
 
-### JSON format (RST-DT, wsj\_1185)
+### JSON format (RST-DT, wsj\_0644)
 
 ```
 {
     "edus": [
         {
-            "tokens": "A group",
-            "postags": "DT NN",
-            "arcs": "2-1-det 25-2-nsubj",
-            "head": "1"
+            "tokens": "Bruce W. Wilkinson , president and chief executive officer , was named to the additional post of chairman of this architectural and design services concern .",
+            "postags": "NNP NNP NNP , NN CC JJ JJ NN , VBD VBN IN DT JJ NN IN NN IN DT JJ CC NN NNS NN .",
+            "arcs": "3-1-compound 3-2-compound 12-3-nsubjpass 3-4-punct 3-5-appos 5-6-cc 9-7-amod 9-8-amod 5-9-conj 3-10-punct 12-11-auxpass 0-12-ROOT 12-13-prep 16-14-det 16-15-amod 13-16-pobj 16-17-prep 17-18-pobj 18-19-prep 25-20-det 25-21-amod 21-22-cc 24-23-compound 21-24-conj 19-25-pobj 12-26-punct",
+            "head": "11"
         },
         {
-            "tokens": "including Gene E. Phillips , former chairman of Southmark Corp. , and William S. Friedman , former vice chairman of Southmark ,",
-            "postags": "VBG NNP NNP NNP , JJ NN IN NNP NNP , CC NNP NNP NNP , JJ NN NN IN NNP ,",
-            "arcs": "2-3-prep 6-4-compound 6-5-compound 3-6-pobj 6-7-punct 9-8-amod 6-9-appos 9-10-prep 12-11-compound 10-12-pobj 6-13-punct 6-14-cc 17-15-compound 17-16-compound 6-17-conj 17-18-punct 21-19-amod 21-20-compound 17-21-appos 21-22-prep 22-23-pobj 17-24-punct",
-            "head": "0"
+            "tokens": "Mr. Wilkinson , 45 years old , succeeds Thomas A. Bullock , 66 ,",
+            "postags": "NNP NNP , CD NNS JJ , VBZ NNP NN NNP , CD ,",
+            "arcs": "2-1-compound 8-2-nsubj 2-3-punct 5-4-nummod 6-5-npadvmod 2-6-amod 2-7-punct 0-8-ROOT 11-9-compound 11-10-compound 8-11-dobj 11-12-punct 11-13-appos 11-14-punct",
+            "head": "7"
         },
         {
-            "tokens": "lowered its stake in the Dallas real estate concern to 7.7 % ,",
-            "postags": "VBD PRP$ NN IN DT NNP JJ NN NN IN CD NN ,",
-            "arcs": "0-25-ROOT 27-26-poss 25-27-dobj 27-28-prep 33-29-det 33-30-nmod 32-31-amod 33-32-compound 28-33-pobj 25-34-prep 36-35-nummod 34-36-pobj 25-37-punct",
-            "head": "0"
+            "tokens": "who is retiring as chairman",
+            "postags": "WP VBZ VBG IN NN",
+            "arcs": "17-15-nsubj 17-16-aux 11-17-relcl 17-18-prep 18-19-pobj",
+            "head": "2"
         },
-        ...
+        {
+            "tokens": "but will continue as a director and chairman of the executive committee .",
+            "postags": "CC MD VB IN DT NN CC NN IN DT JJ NN .",
+            "arcs": "17-20-cc 22-21-aux 17-22-conj 22-23-prep 25-24-det 23-25-pobj 25-26-cc 25-27-conj 25-28-prep 31-29-det 31-30-amod 28-31-pobj 8-32-punct",
+            "head": "0"
+        }
     ],
-    "sentence_boundaries": [
-        "0 3",
-        "4 5",
-        "6 7"
-    ],
-    "paragraph_boundaries": [
-        "0 0",
-        "1 1",
-        "2 2"
-    ],
-    "nary_sexp": "( <elaboration-additional,N/S> ( <elaboration-additional,N/S> ( <attribution,N/S> ( <Same-Unit,N/N> ( <elaboration-set-member-e,N/S> 0 1 ) 2 ) 3 ) ( <attribution,S/N> 4 5 ) ) ( <attribution,S/N> 6 7 ) )",
-    "bin_sexp": "( <elaboration-additional,N/S> ( <elaboration-additional,N/S> ( <attribution,N/S> ( <Same-Unit,N/N> ( <elaboration-set-member-e,N/S> 0 1 ) 2 ) 3 ) ( <attribution,S/N> 4 5 ) ) ( <attribution,S/N> 6 7 ) )",
-    "arcs": "0-1-<root> 1-2-elaboration-set-member-e 1-3-Same-Unit 1-4-attribution 6-5-attribution 1-6-elaboration-additional 8-7-attribution 1-8-elaboration-additional"
+    "sentence_boundaries": "0-0 1-3",
+    "paragraph_boundaries": "0-1",
+    "nary_sexp": "( <circumstance,N/S> 0 ( <elaboration-additional-e,N/S> 1 ( <concession,S/N> 2 3 ) ) )",
+    "bin_sexp": "( <circumstance,N/S> 0 ( <elaboration-additional-e,N/S> 1 ( <concession,S/N> 2 3 ) ) )",
+    "arcs": "0-1-<root> 1-2-circumstance 4-3-concession 2-4-elaboration-additional-e"
 }
 ```
 
@@ -85,25 +82,24 @@ You can use JSON files without syntactic features (i.e., "postags", "arcs", and 
 {
     "edus": [
         {
-            "tokens": "A group"
+            "tokens": "Bruce W. Wilkinson , president and chief executive officer , was named to the additional post of chairman of this architectural and design services concern .",
         },
         {
-            "tokens": "including Gene E. Phillips , former chairman of Southmark Corp. , and William S. Friedman , former vice chairman of Southmark ,"
+            "tokens": "Mr. Wilkinson , 45 years old , succeeds Thomas A. Bullock , 66 ,",
         },
         {
-            "tokens": "lowered its stake in the Dallas real estate concern to 7.7 % ,"
+            "tokens": "who is retiring as chairman",
         },
-        ...
+        {
+            "tokens": "but will continue as a director and chairman of the executive committee .",
+        }
     ],
-    "sentence_boundaries": [
-        "0 3",
-        "4 5",
-        "6 7"
-    ],
-    "nary_sexp": "( <elaboration-additional,N/S> ( <elaboration-additional,N/S> ( <attribution,N/S> ( <Same-Unit,N/N> ( <elaboration-set-member-e,N/S> 0 1 ) 2 ) 3 ) ( <attribution,S/N> 4 5 ) ) ( <attribution,S/N> 6 7 ) )",
-    "bin_sexp": "( <elaboration-additional,N/S> ( <elaboration-additional,N/S> ( <attribution,N/S> ( <Same-Unit,N/N> ( <elaboration-set-member-e,N/S> 0 1 ) 2 ) 3 ) ( <attribution,S/N> 4 5 ) ) ( <attribution,S/N> 6 7 ) )",
-    "arcs": "0-1-<root> 1-2-elaboration-set-member-e 1-3-Same-Unit 1-4-attribution 6-5-attribution 1-6-elaboration-additional 8-7-attribution 1-8-elaboration-additional"
+    "sentence_boundaries": "0-0 1-3",
+    "nary_sexp": "( <circumstance,N/S> 0 ( <elaboration-additional-e,N/S> 1 ( <concession,S/N> 2 3 ) ) )",
+    "bin_sexp": "( <circumstance,N/S> 0 ( <elaboration-additional-e,N/S> 1 ( <concession,S/N> 2 3 ) ) )",
+    "arcs": "0-1-<root> 1-2-circumstance 4-3-concession 2-4-elaboration-additional-e"
 }
+
 ```
 
 In training (and evaluation), please set ```use_edu_head_information = false``` in an appropriate configuration file (e.g., `./config/arcfactored.conf`).

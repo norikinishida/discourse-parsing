@@ -129,12 +129,12 @@ def preprocess(tokenizer_wrapper, split):
                 use_head = False
 
             # Sentence boundaries
-            sentence_boundaries = [tuple([int(x) for x in line.split()]) for line in dictionary["sentence_boundaries"]]
+            sentence_boundaries = [tuple([int(x) for x in span.split("-")]) for span in dictionary["sentence_boundaries"].split()]
             kargs["sentence_boundaries"] = sentence_boundaries
 
             # Paragraph boundaries
             if "paragraph_boundaries" in dictionary:
-                paragraph_boundaries = [tuple([int(x) for x in line.split()]) for line in dictionary["paragraph_boundaries"]]
+                paragraph_boundaries = [tuple([int(x) for x in span.split("-")]) for span in dictionary["paragraph_boundaries"].split()]
             else:
                 paragraph_boundaries = [(0, len(sentence_boundaries) - 1)]
             kargs["paragraph_boundaries"] = paragraph_boundaries
@@ -215,11 +215,11 @@ def preprocess(tokenizer_wrapper, split):
     n_edus = 0
     for data in dataset:
         n_edus += len(data.edus[1:]) # Exclude the ROOT
-    utils.writelog("split=%s" % split)
-    utils.writelog("# of documents=%d" % n_docs)
-    utils.writelog("# of paragraphs=%d" % n_paras)
-    utils.writelog("# of sentences=%d" % n_sents)
-    utils.writelog("# of EDUs (w/o ROOTs)=%d" % n_edus)
+    utils.writelog("split: %s" % split)
+    utils.writelog("# of documents: %d" % n_docs)
+    utils.writelog("# of paragraphs: %d" % n_paras)
+    utils.writelog("# of sentences: %d" % n_sents)
+    utils.writelog("# of EDUs (w/o ROOTs): %d" % n_edus)
 
     return dataset
 

@@ -59,10 +59,10 @@ def main(args):
         with open(os.path.join(output_dir, "%s_%s.sentence_boundaries" % (output_filename_prefix, id)), "w") as f:
             begin_i = 0
             end_i = len(raw_edus) - 1
-            f.write("%d %d\n" % (begin_i, end_i))
+            f.write("%d-%d\n" % (begin_i, end_i))
 
         with open(os.path.join(output_dir, "%s_%s.paragraph_boundaries" % (output_filename_prefix, id)), "w") as f:
-            f.write("0 0\n")
+            f.write("0-0\n")
 
         with open(os.path.join(output_dir, "%s_%s.arcs" % (output_filename_prefix, id)), "w") as f:
             disc_arcs = sorted(disc_arcs, key=lambda x: x[1])

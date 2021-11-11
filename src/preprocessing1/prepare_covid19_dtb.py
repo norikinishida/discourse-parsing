@@ -41,12 +41,14 @@ def main(args):
                 f.write("%s\n" % edu)
 
         with open(os.path.join(path_out, filename.replace(".dep", ".sentence_boundaries")), "w") as f:
-            for begin_i, end_i in sentence_boundaries:
-                f.write("%d %d\n" % (begin_i, end_i))
+            # for begin_i, end_i in sentence_boundaries:
+            #     f.write("%d %d\n" % (begin_i, end_i))
+            f.write("%s\n" % " ".join(["%d-%d" % (b, e) for b, e in sentence_boundaries]))
 
         with open(os.path.join(path_out, filename.replace(".dep", ".paragraph_boundaries")), "w") as f:
-            for begin_i, end_i in paragraph_boundaries:
-                f.write("%d %d\n" % (begin_i, end_i))
+            # for begin_i, end_i in paragraph_boundaries:
+            #     f.write("%d %d\n" % (begin_i, end_i))
+            f.write("%s\n" % " ".join(["%d-%d" % (b, e) for b, e in paragraph_boundaries]))
 
         with open(os.path.join(path_out, filename.replace(".dep", ".arcs")), "w") as f:
             disc_arcs = sorted(disc_arcs, key=lambda x: x[1])

@@ -149,8 +149,9 @@ def main(args):
 
         # Write paragraph boundaries
         with open(os.path.join(path, filename.replace(".doc.tokens", ".paragraph_boundaries")), "w") as f:
-            for begin_i, end_i in paragraph_boundaries:
-                f.write("%d %d\n" % (begin_i, end_i))
+            # for begin_i, end_i in paragraph_boundaries:
+            #     f.write("%d %d\n" % (begin_i, end_i))
+            f.write("%s\n" % " ".join(["%d-%d" % (b, e) for b, e in paragraph_boundaries]))
 
         # Write sentences
         with open(os.path.join(path, filename.replace(".doc.tokens", ".sents.tokens")), "w") as f:

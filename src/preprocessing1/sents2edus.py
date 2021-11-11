@@ -54,8 +54,9 @@ def main(args):
                 begin_edu_i = end_edu_i + 1
         assert sent_i == len(sent_end_positions)
         with open(os.path.join(path, filename.replace(".edus.tokens", ".sentence_boundaries")), "w") as f:
-            for begin_i, end_i in sentence_boundaries:
-                f.write("%d %d\n" % (begin_i, end_i))
+            # for begin_i, end_i in sentence_boundaries:
+            #     f.write("%d %d\n" % (begin_i, end_i))
+            f.write("%s\n" % " ".join(["%d-%d" % (b, e) for b, e in sentence_boundaries]))
 
         # Extract POS tags and dependency arcs corresponding to each EDU
         with open(os.path.join(path, filename.replace(".edus.tokens", ".edus.postags")), "w") as fp,\

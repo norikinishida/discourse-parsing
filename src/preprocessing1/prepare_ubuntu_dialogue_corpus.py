@@ -48,10 +48,10 @@ def main(args):
         with open(os.path.join(output_dir, filename.replace(".tsv", ".sentence_boundaries")), "w") as f:
             begin_i = 0
             end_i = len(raw_edus) - 1
-            f.write("%d %d\n" % (begin_i, end_i))
+            f.write("%d-%d\n" % (begin_i, end_i))
 
         with open(os.path.join(output_dir, filename.replace(".tsv", ".paragraph_boundaries")), "w") as f:
-            f.write("0 0\n")
+            f.write("0-0\n")
 
         edus_tokens = []
         edus_postags = []
