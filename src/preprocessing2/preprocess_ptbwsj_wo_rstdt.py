@@ -74,7 +74,7 @@ def preprocess(tokenizer_wrapper, with_root=False):
 
         # EDUs (dependency relations)
         if "arcs" in dictionary["edus"][0]:
-            edus_deprel = [[l for h,d,l in treetk.hyphens2arcs(edu_info["arcs"].split())] for edu_info in dictionary["edus_arc"]]
+            edus_deprel = [[l for h,d,l in treetk.hyphens2arcs(edu_info["arcs"].split())] for edu_info in dictionary["edus"]]
             if with_root:
                 edus_deprel = [["<root>"]] + edus_deprel
             kargs["edus_deprel"] = edus_deprel
