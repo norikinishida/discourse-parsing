@@ -38,6 +38,7 @@ def generate_rstdt_dev_set_for_dep(train_dataset, n_dev, seed, output_path):
             line = " ".join(line)
             f.write("%s\n" % line)
     utils.writelog("Saved RST-DT dev set (size=%d, seed=%d) to %s" % (n_dev, seed, output_path))
+    return train_dataset, dev_dataset
 
 
 def is_projective(arcs):
