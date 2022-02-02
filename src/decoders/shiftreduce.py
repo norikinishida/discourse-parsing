@@ -31,18 +31,7 @@ class ArcStandardDecoder(object):
     def decode(self,
                model,
                edu_ids,
-               edus,
-               segments,
-               segments_id,
-               segments_mask,
-               edu_begin_indices,
-               edu_end_indices,
-               edu_head_indices,
-               #
-               sentence_boundaries,
-               paragraph_boundaries,
-               use_sentence_boundaries,
-               use_paragraph_boundaries,
+               data,
                #
                gold_arcs=None,
                #
@@ -52,17 +41,7 @@ class ArcStandardDecoder(object):
         ----------
         model: ArcStandardModel
         edu_ids: list[int]
-        edus: list[list[str]]
-        segments: list[list[str]]
-        segments_id: Tensor(shape=(n_segments, max_seg_len), dtype=torch.long)
-        segments_mask: Tensor(shape=(n_segments, max_seg_len), dtype=torch.long)
-        edu_begin_indices: Tensor(shape=(n_edus,), dtype=torch.long)
-        edu_end_indices: Tensor(shape=(n_edus,), dtype=torch.long)
-        edu_head_indices: Tensor(shape=(n_edus,), dtype=torch.long) or None
-        sentence_boundaries: list[(int, int)]
-        paragraph_boundaries: list[(int, int)]
-        use_sentence_boundaries: bool
-        use_paragraph_boundaries: bool
+        data: DataInstance
         gold_arcs: list[(int, int, str)]
         confidence_measure: str
 
@@ -87,13 +66,7 @@ class ArcStandardDecoder(object):
         # Encode EDUs
         #   (1) Including the ROOT feature;
         #   (2) Irrelevant with the input order (LR, RL)
-        edu_vectors = model.forward_edus(edus=edus,
-                                         segments=segments,
-                                         segments_id=segments_id,
-                                         segments_mask=segments_mask,
-                                         edu_begin_indices=edu_begin_indices,
-                                         edu_end_indices=edu_end_indices,
-                                         edu_head_indices=edu_head_indices) # (n_edus+1, edu_dim)
+        edu_vectors = model.forward_edus(data=data) # (n_edus + 1, edu_dim)
 
         if gold_arcs is None:
             #####

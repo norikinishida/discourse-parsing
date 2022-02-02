@@ -125,55 +125,25 @@ class StackPointerDecoder(object):
 
         return gold_actions, gold_relations, stack_top_indices, valences, action_masks
 
-    def decode(self,
-               model,
-               edu_ids,
-               edus,
-               segments,
-               segments_id,
-               segments_mask,
-               edu_begin_indices,
-               edu_end_indices,
-               edu_head_indices,
-               #
-               sentence_boundaries,
-               paragraph_boundaries,
-               use_sentence_boundaries,
-               use_paragraph_boundaries):
+    def decode(self, model, data):
         """
         Parameters
         ----------
         model: StackPointerModel
-        edu_ids: list[int]
-        edus: list[list[str]]
-        segments: list[list[str]]
-        segments_id: Tensor(shape=(n_segments, max_seg_len), dtype=torch.long)
-        segments_mask: Tensor(shape=(n_segments, max_seg_len), dtype=torch.long)
-        edu_begin_indices: Tensor(shape=(n_edus,), dtype=torch.long)
-        edu_end_indices: Tensor(shape=(n_edus,), dtype=torch.long)
-        edu_head_indices: Tensor(shape=(n_edus,), dtype=torch.long) or None
-        sentence_boundaries: list[(int, int)]
-        paragraph_boundaries: list[(int, int)]
-        use_sentence_boundaries: bool
-        use_paragraph_boundaries: bool
+        data: DataInstance
 
         Returns
         -------
         StackPointerParserState
         """
+        edu_ids = data.edu_ids
         assert edu_ids[0] == 0 # ROOT
 
         parser_state = StackPointerParserState(input=edu_ids)
         head2vals = {h: 0 for h in range(len(edu_ids))}
 
         # Encoder
-        edu_vectors = model.encode(edus=edus,
-                                   segments=segments,
-                                   segments_id=segments_id,
-                                   segments_mask=segments_mask,
-                                   edu_begin_indices=edu_begin_indices,
-                                   edu_end_indices=edu_end_indices,
-                                   edu_head_indices=edu_head_indices) # (n_edus, edu_dim)
+        edu_vectors = model.encode(data=data) # (n_edus, edu_dim)
 
         # Biaffine inputs (dependent side)
         arc_dep_vectors = model.mlp_arc_d(edu_vectors).unsqueeze(0) # (1, n_edus, mlp_arc_dim)

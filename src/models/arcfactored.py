@@ -102,32 +102,39 @@ class BiaffineModel(nn.Module):
     # Forwarding
     #########################
 
-    def forward(self,
-                edus,
-                segments,
-                segments_id,
-                segments_mask,
-                edu_begin_indices,
-                edu_end_indices,
-                edu_head_indices):
+    def forward(self, data):
         """
         Parameters
         ----------
-        edus: list[list[str]]
-        segments: list[list[str]]
-        segments_id: Tensor(shape=(n_segments, max_seg_len), dtype=torch.long)
-        segments_mask: Tensor(shape=(n_segments, max_seg_len), dtype=torch.long)
-        edu_begin_indices: Tensor(shape=(n_edus,), dtype=torch.long)
-        edu_end_indices: Tensor(shape=(n_edus,), dtype=torch.long)
-        edu_head_indices: Tensor(shape=(n_edus,), dtype=torch.long) or None
+        data: DataInstance
 
         Returns
         -------
         Tensor(shape=(n_edus, n_edus), dtype=np.float32)
         Tensor(shape=(n_edus, n_edus, n_relations), dtype=np.float32)
         """
+        # Tensorize inputs
+        # edu_ids = data.edu_ids # list[int]
+        edus = data.edus # list[list[str]]
+        # segments = data.segments # list[list[str]]
         assert len(edus[0]) == 1 # NOTE
         assert edus[0][0] == "<root>" # NOTE
+
+        segments_id = data.segments_id # (n_segments, max_seg_len)
+        segments_mask = data.segments_mask # (n_segments, max_seg_len)
+        edu_begin_indices = data.edu_begin_indices # (n_edus,)
+        edu_end_indices = data.edu_end_indices # (n_edus,)
+        if self.use_edu_head_information:
+            edu_head_indices = data.edu_head_indices # (n_edus,)
+        else:
+            edu_head_indices = None
+
+        segments_id = torch.tensor(segments_id, device=self.device)
+        segments_mask = torch.tensor(segments_mask, device=self.device)
+        edu_begin_indices = torch.tensor(edu_begin_indices, device=self.device)
+        edu_end_indices = torch.tensor(edu_end_indices, device=self.device)
+        if self.use_edu_head_information:
+            edu_head_indices = torch.tensor(edu_head_indices, device=self.device)
 
         # Embed tokens using BERT
         token_vectors, _ = self.bert(segments_id, attention_mask=segments_mask) # (n_segments, max_seg_len, bert_emb_dim)

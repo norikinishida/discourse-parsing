@@ -85,27 +85,6 @@ class ShiftReduceParser:
         float
         int
         """
-        # Tensorize inputs
-        edu_ids = data.edu_ids
-        edus = data.edus
-
-        segments = data.segments
-        segments_id = data.segments_id
-        segments_mask = data.segments_mask
-        edu_begin_indices = data.edu_begin_indices
-        edu_end_indices = data.edu_end_indices
-        if self.use_edu_head_information:
-            edu_head_indices = data.edu_head_indices
-        else:
-            edu_head_indices = None
-
-        segments_id = torch.tensor(segments_id, device=self.model.device)
-        segments_mask = torch.tensor(segments_mask, device=self.model.device)
-        edu_begin_indices = torch.tensor(edu_begin_indices, device=self.model.device)
-        edu_end_indices = torch.tensor(edu_end_indices, device=self.model.device)
-        if self.use_edu_head_information:
-            edu_head_indices = torch.tensor(edu_head_indices, device=self.model.device)
-
         # Prepare targets
         gold_arcs = data.arcs
         assert sum([1 for h,d,l in gold_arcs if h == 0]) == 1
@@ -114,40 +93,19 @@ class ShiftReduceParser:
         self.model.train()
 
         # Forward and decode
+        edu_ids = data.edu_ids
         if not self.reverse_order:
             _, pred_actions, gold_actions = self.decoder.decode(
                                                 model=self.model,
                                                 edu_ids=edu_ids,
-                                                edus=edus,
-                                                segments=segments,
-                                                segments_id=segments_id,
-                                                segments_mask=segments_mask,
-                                                edu_begin_indices=edu_begin_indices,
-                                                edu_end_indices=edu_end_indices,
-                                                edu_head_indices=edu_head_indices,
-                                                #
-                                                sentence_boundaries=None,
-                                                paragraph_boundaries=None,
-                                                use_sentence_boundaries=False,
-                                                use_paragraph_boundaries=False,
+                                                data=data,
                                                 #
                                                 gold_arcs=gold_arcs)
         else:
             _, pred_actions, gold_actions = self.decoder.decode(
                                                 model=self.model,
                                                 edu_ids=edu_ids[0:1] + edu_ids[1:][::-1],
-                                                edus=edus,
-                                                segments=segments,
-                                                segments_id=segments_id,
-                                                segments_mask=segments_mask,
-                                                edu_begin_indices=edu_begin_indices,
-                                                edu_end_indices=edu_end_indices,
-                                                edu_head_indices=edu_head_indices,
-                                                #
-                                                sentence_boundaries=None,
-                                                paragraph_boundaries=None,
-                                                use_sentence_boundaries=False,
-                                                use_paragraph_boundaries=False,
+                                                data=data,
                                                 #
                                                 gold_arcs=gold_arcs)
         assert len(pred_actions) == len(gold_actions)
@@ -177,66 +135,22 @@ class ShiftReduceParser:
         list[(int, int, str)]
         float
         """
-        # Tensorize inputs
-        edu_ids = data.edu_ids
-        edus = data.edus
-
-        segments = data.segments
-        segments_id = data.segments_id
-        segments_mask = data.segments_mask
-        edu_begin_indices = data.edu_begin_indices
-        edu_end_indices = data.edu_end_indices
-        if self.use_edu_head_information:
-            edu_head_indices = data.edu_head_indices
-        else:
-            edu_head_indices = None
-
-        segments_id = torch.tensor(segments_id, device=self.model.device)
-        segments_mask = torch.tensor(segments_mask, device=self.model.device)
-        edu_begin_indices = torch.tensor(edu_begin_indices, device=self.model.device)
-        edu_end_indices = torch.tensor(edu_end_indices, device=self.model.device)
-        if self.use_edu_head_information:
-            edu_head_indices = torch.tensor(edu_head_indices, device=self.model.device)
-
         # Switch to inference mode
         self.model.eval()
 
         # Forward and decode
+        edu_ids = data.edu_ids
         if not self.reverse_order:
             parser_state, _, _ = self.decoder.decode(
                                     model=self.model,
                                     edu_ids=edu_ids,
-                                    edus=edus,
-                                    segments=segments,
-                                    segments_id=segments_id,
-                                    segments_mask=segments_mask,
-                                    edu_begin_indices=edu_begin_indices,
-                                    edu_end_indices=edu_end_indices,
-                                    edu_head_indices=edu_head_indices,
-                                    #
-                                    sentence_boundaries=None,
-                                    paragraph_boundaries=None,
-                                    use_sentence_boundaries=False,
-                                    use_paragraph_boundaries=False,
-                                    #
+                                    data=data,
                                     confidence_measure=confidence_measure)
         else:
             parser_state, _, _ = self.decoder.decode(
                                     model=self.model,
                                     edu_ids=edu_ids[0:1] + edu_ids[1:][::-1],
-                                    edus=edus,
-                                    segments=segments,
-                                    segments_id=segments_id,
-                                    segments_mask=segments_mask,
-                                    edu_begin_indices=edu_begin_indices,
-                                    edu_end_indices=edu_end_indices,
-                                    edu_head_indices=edu_head_indices,
-                                    #
-                                    sentence_boundaries=None,
-                                    paragraph_boundaries=None,
-                                    use_sentence_boundaries=False,
-                                    use_paragraph_boundaries=False,
-                                    #
+                                    data=data,
                                     confidence_measure=confidence_measure)
         labeled_arcs = parser_state.arcs # list[(int, int, str)]
 

@@ -82,26 +82,11 @@ class ArcFactoredParser:
         float
         int
         """
-        # Tensorize inputs
-        edu_ids = data.edu_ids
-        edus = data.edus
+        # Switch to training mode
+        self.model.train()
 
-        segments = data.segments
-        segments_id = data.segments_id
-        segments_mask = data.segments_mask
-        edu_begin_indices = data.edu_begin_indices
-        edu_end_indices = data.edu_end_indices
-        if self.use_edu_head_information:
-            edu_head_indices = data.edu_head_indices
-        else:
-            edu_head_indices = None
-
-        segments_id = torch.tensor(segments_id, device=self.model.device)
-        segments_mask = torch.tensor(segments_mask, device=self.model.device)
-        edu_begin_indices = torch.tensor(edu_begin_indices, device=self.model.device)
-        edu_end_indices = torch.tensor(edu_end_indices, device=self.model.device)
-        if self.use_edu_head_information:
-            edu_head_indices = torch.tensor(edu_head_indices, device=self.model.device)
+        # Forward
+        arc_scores, rel_logits = self.model.forward(data=data) # (n_edus, n_edus), (n_edus, n_edus, n_relations)
 
         # Tensorize targets
         gold_arcs = data.arcs
@@ -115,19 +100,6 @@ class ArcFactoredParser:
         if labeled_parsing:
             gold_relations = torch.tensor(gold_relations, device=self.model.device) # (n_edus - 1,)
 
-        # Switch to training mode
-        self.model.train()
-
-        # Forward
-        arc_scores, rel_logits = self.model.forward(
-                                            edus=edus,
-                                            segments=segments,
-                                            segments_id=segments_id,
-                                            segments_mask=segments_mask,
-                                            edu_begin_indices=edu_begin_indices,
-                                            edu_end_indices=edu_end_indices,
-                                            edu_head_indices=edu_head_indices) # (n_edus, n_edus), (n_edus, n_edus, n_relations)
-
         # Compute attachment loss and accuracy (summed over arcs)
         arc_scores = arc_scores.permute(1, 0) # Head x Dep -> Dep x Head
         arc_scores = arc_scores[1:] # (n_edus - 1, n_edus)
@@ -137,7 +109,7 @@ class ArcFactoredParser:
         # Compute relation loss and accuracy (summed over arcs)
         if labeled_parsing:
             rel_logits = rel_logits.permute(1, 0, 2) # Head x Dep x Rel -> Dep x Head x Rel
-            rel_logits = rel_logits[torch.arange(1, len(edu_ids)), gold_heads] # (n_edus - 1, n_relations)
+            rel_logits = rel_logits[torch.arange(1, len(data.edu_ids)), gold_heads] # (n_edus - 1, n_relations)
             loss_relation = self.cross_entropy_loss(rel_logits, gold_relations)
             acc_relation = (rel_logits.max(axis=1)[1] == gold_relations).to(torch.float).sum().item()
 
@@ -163,26 +135,11 @@ class ArcFactoredParser:
         float
         int
         """
-        # Tensorize inputs
-        edu_ids = data.edu_ids
-        edus = data.edus
+        # Switch to training mode
+        self.model.train()
 
-        segments = data.segments
-        segments_id = data.segments_id
-        segments_mask = data.segments_mask
-        edu_begin_indices = data.edu_begin_indices
-        edu_end_indices = data.edu_end_indices
-        if self.use_edu_head_information:
-            edu_head_indices = data.edu_head_indices
-        else:
-            edu_head_indices = None
-
-        segments_id = torch.tensor(segments_id, device=self.model.device)
-        segments_mask = torch.tensor(segments_mask, device=self.model.device)
-        edu_begin_indices = torch.tensor(edu_begin_indices, device=self.model.device)
-        edu_end_indices = torch.tensor(edu_end_indices, device=self.model.device)
-        if self.use_edu_head_information:
-            edu_head_indices = torch.tensor(edu_head_indices, device=self.model.device)
+        # Forward
+        arc_scores, rel_logits = self.model.forward(data=data) # (n_edus, n_edus), (n_edus, n_edus, n_relations)
 
         # Tensorize targets
         gold_arcs = data.arcs
@@ -197,19 +154,6 @@ class ArcFactoredParser:
             gold_relations = torch.tensor(gold_relations, device=self.model.device) # (sample_size_edus,)
         annotated_deps = torch.tensor([d - 1 for h,d,r in gold_arcs], device=self.model.device) # (sample_size_edu,)
 
-        # Switch to training mode
-        self.model.train()
-
-        # Forward
-        arc_scores, rel_logits = self.model.forward(
-                                            edus=edus,
-                                            segments=segments,
-                                            segments_id=segments_id,
-                                            segments_mask=segments_mask,
-                                            edu_begin_indices=edu_begin_indices,
-                                            edu_end_indices=edu_end_indices,
-                                            edu_head_indices=edu_head_indices) # (n_edus, n_edus), (n_edus, n_edus, n_relations)
-
         # Compute attachment loss and accuracy (summed over arcs)
         arc_scores = arc_scores.permute(1, 0) # Head x Dep -> Dep x Head
         arc_scores = arc_scores[1:] # (n_edus - 1, n_edus)
@@ -220,11 +164,11 @@ class ArcFactoredParser:
         # Compute relation loss and accuracy (summed over arcs)
         if labeled_parsing:
             rel_logits = rel_logits.permute(1, 0, 2) # Head x Dep x Rel -> Dep x Head x Rel
-            dummy_gold_heads = np.zeros((len(edu_ids) - 1,), dtype=np.int64) # (n_edus - 1,)
+            dummy_gold_heads = np.zeros((len(data.edu_ids) - 1,), dtype=np.int64) # (n_edus - 1,)
             for h, d, r in gold_arcs:
                 dummy_gold_heads[d - 1] = h
             dummy_gold_heads = torch.tensor(dummy_gold_heads, device=self.model.device)
-            rel_logits = rel_logits[torch.arange(1, len(edu_ids)), dummy_gold_heads] # (n_edus - 1, n_relations)
+            rel_logits = rel_logits[torch.arange(1, len(data.edu_ids)), dummy_gold_heads] # (n_edus - 1, n_relations)
             rel_logits = rel_logits[annotated_deps] # (sample_size_edu, n_relations)
             loss_relation = self.cross_entropy_loss(rel_logits, gold_relations)
             acc_relation = (rel_logits.max(axis=1)[1] == gold_relations).to(torch.float).sum().item()
@@ -251,40 +195,16 @@ class ArcFactoredParser:
         list[(int, int, str)]
         float or list[int]
         """
-        # Tensorize inputs
-        edu_ids = data.edu_ids
-        edus = data.edus
-
-        segments = data.segments
-        segments_id = data.segments_id
-        segments_mask = data.segments_mask
-        edu_begin_indices = data.edu_begin_indices
-        edu_end_indices = data.edu_end_indices
-        edu_head_indices = data.edu_head_indices
-
-        sentence_boundaries = data.sentence_boundaries
-        paragraph_boundaries = data.paragraph_boundaries
-
-        segments_id = torch.tensor(segments_id, device=self.model.device)
-        segments_mask = torch.tensor(segments_mask, device=self.model.device)
-        edu_begin_indices = torch.tensor(edu_begin_indices, device=self.model.device)
-        edu_end_indices = torch.tensor(edu_end_indices, device=self.model.device)
-        edu_head_indices = torch.tensor(edu_head_indices, device=self.model.device)
-
         # Switch to inference mode
         self.model.eval()
 
         # Forward
-        arc_scores, rel_logits_tensor = self.model.forward(
-                                        edus=edus,
-                                        segments=segments,
-                                        segments_id=segments_id,
-                                        segments_mask=segments_mask,
-                                        edu_begin_indices=edu_begin_indices,
-                                        edu_end_indices=edu_end_indices,
-                                        edu_head_indices=edu_head_indices) # (n_edus, n_edus), (n_edus, n_edus, n_relations)
+        arc_scores, rel_logits_tensor = self.model.forward(data=data) # (n_edus, n_edus), (n_edus, n_edus, n_relations)
 
         # Decode
+        edu_ids = data.edu_ids
+        sentence_boundaries = data.sentence_boundaries
+        paragraph_boundaries = data.paragraph_boundaries
         unlabeled_arcs = self.decoder.decode(
                                 arc_scores=arc_scores.cpu().numpy(),
                                 edu_ids=edu_ids,

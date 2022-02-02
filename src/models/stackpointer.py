@@ -120,36 +120,11 @@ class StackPointerModel(nn.Module):
     # Forwarding
     #########################
 
-    def forward_for_training(self,
-                             edus,
-                             segments,
-                             segments_id,
-                             segments_mask,
-                             edu_begin_indices,
-                             edu_end_indices,
-                             edu_head_indices,
-                             #
-                             sentence_boundaries,
-                             paragraph_boundaries,
-                             use_sentence_boundaries,
-                             use_paragraph_boundaries,
-                             #
-                             stack_top_indices,
-                             valences):
+    def forward_for_training(self, data, stack_top_indices, valences):
         """
         Parameters
         ----------
-        edus: list[list[str]]
-        segments: list[list[str]]
-        segments_id: Tensor(shape=(n_segments, max_seg_len), dtype=torch.long)
-        segments_mask: Tensor(shape=(n_segments, max_seg_len), dtype=torch.long)
-        edu_begin_indices: Tensor(shape=(n_edus,), dtype=torch.long)
-        edu_end_indices: Tensor(shape=(n_edus,), dtype=torch.long)
-        edu_head_indices: Tensor(shape=(n_edus,), dtype=torch.long) or None
-        sentence_boundaries: list of (int, int)
-        paragraph_boundaries: list of (int, int)
-        use_sentence_boundaries: bool
-        use_paragraph_boundaries: bool
+        data: DataInstance
         stack_top_indices: Tensor(shape=(n_actions,))
         valences: Tensor(shape=(action_length,))
 
@@ -158,17 +133,8 @@ class StackPointerModel(nn.Module):
         Tensor(shape=(action_length, n_edus)),
         Tensor(shape=(action_length, n_edus, n_relations))
         """
-        assert len(edus[0]) == 1 # NOTE
-        assert edus[0][0] == "<root>" # NOTE
-
         # Compute EDU vectorts using encoder LSTM
-        edu_vectors = self.encode(edus=edus,
-                                  segments=segments,
-                                  segments_id=segments_id,
-                                  segments_mask=segments_mask,
-                                  edu_begin_indices=edu_begin_indices,
-                                  edu_end_indices=edu_end_indices,
-                                  edu_head_indices=edu_head_indices) # (n_edus, edu_dim)
+        edu_vectors = self.encode(data=data) # (n_edus, edu_dim)
 
         # Compute dependent-side vectors using MLP
         arc_dep_vectors = self.mlp_arc_d(edu_vectors).unsqueeze(0) # (1, n_edus, mlp_arc_dim)
@@ -192,31 +158,38 @@ class StackPointerModel(nn.Module):
         pred_relations = self.biaffine_rel(rel_head_vectors, rel_dep_vectors).permute(0, 2, 3, 1).squeeze(0) # (action_length, n_edus, n_relations)
         return pred_actions, pred_relations
 
-    def encode(self,
-              edus,
-              segments,
-              segments_id,
-              segments_mask,
-              edu_begin_indices,
-              edu_end_indices,
-              edu_head_indices):
+    def encode(self, data):
         """
         Parameters
         ----------
-        edus: list[list[str]]
-        segments: list[list[str]]
-        segments_id: Tensor(shape=(n_segments, max_seg_len), dtype=torch.long)
-        segments_mask: Tensor(shape=(n_segments, max_seg_len), dtype=torch.long)
-        edu_begin_indices: Tensor(shape=(n_edus,), dtype=torch.long)
-        edu_end_indices: Tensor(shape=(n_edus,), dtype=torch.long)
-        edu_head_indices: Tensor(shape=(n_edus,), dtype=torch.long) or None
+        data: DataInstance
 
         Returns
         -------
         Tensor(shape=(n_edus, edu_dim), dtype=np.float32)
         """
+        # Tensorize inputs
+        # edu_ids = data.edu_ids # list[int]
+        edus = data.edus # list[list[str]]
+        # segments = data.segments # list[list[str]]
         assert len(edus[0]) == 1 # NOTE
         assert edus[0][0] == "<root>" # NOTE
+
+        segments_id = data.segments_id # (n_segments, max_seg_len)
+        segments_mask = data.segments_mask # (n_segments, max_seg_len)
+        edu_begin_indices = data.edu_begin_indices # (n_edus,)
+        edu_end_indices = data.edu_end_indices # (n_edus,)
+        if self.use_edu_head_information:
+            edu_head_indices = data.edu_head_indices # (n_edus,)
+        else:
+            edu_head_indices = None
+
+        segments_id = torch.tensor(segments_id, device=self.device)
+        segments_mask = torch.tensor(segments_mask, device=self.device)
+        edu_begin_indices = torch.tensor(edu_begin_indices, device=self.device)
+        edu_end_indices = torch.tensor(edu_end_indices, device=self.device)
+        if self.use_edu_head_information:
+            edu_head_indices = torch.tensor(edu_head_indices, device=self.device)
 
         # Embed tokens using BERT
         token_vectors, _ = self.bert(segments_id, attention_mask=segments_mask) # (n_segments, max_seg_len, bert_emb_dim)
