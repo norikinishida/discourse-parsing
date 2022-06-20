@@ -5,7 +5,7 @@ This repository is an implementation of discourse parsers:
 - Arc-factored discourse dependency parser using a BERT-based biaffine model and multi-stage Eisner decoding
 - Shift-reduce discourse dependency parser using a BERT-based arc-standard model
 - Stack-pointer discourse dependency parser using a BERT-based pointer network
-- Bootstrapping algorithms (self-training, co-training, tri-training, and assymmetric tri-training) of discourse dependency parsers for unsupervised domain adaptation (Nishida and Matsumoto, 2021) (to appear in TACL)
+- Bootstrapping algorithms (self-training, co-training, tri-training, and assymmetric tri-training) of discourse dependency parsers for unsupervised domain adaptation ([Nishida and Matsumoto, 2022](https://doi.org/10.1162/tacl_a_00451))
 
 ## Requirements
 
@@ -34,7 +34,7 @@ Overall steps:
 1. Compile the extracted (or predicted) information as JSON files. Each JSON file corresponds to each data instance in the dataset.
 1. Preprocess the JSON files using the BERT tokenizer and save the preprocessed datasets (`*.npy`), gold structures (`*.ctrees`, `*.arcs`), and discourse relation class list (`*.vocab.txt`) to the `<caches-*>` directory specified in the configuration file (`./config/path.conf`).
 
-See `./run_preprocessing1.sh` and `./run_preprocessing2.sh` for more detailed examples on Step 1-3 and Step 4, respectively.
+See `./run_preprocessing1.sh` and `./run_preprocessing2.sh` (or `./run_preprocessing2_for_tacl2022`) for more detailed examples on Step 1-3 and Step 4, respectively.
 
 ### JSON format (RST-DT, wsj\_0644)
 
