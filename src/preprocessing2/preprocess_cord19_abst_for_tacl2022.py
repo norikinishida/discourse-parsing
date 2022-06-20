@@ -14,14 +14,16 @@ from berttokenizerwrapper import BertTokenizerWrapper
 def main():
     config = utils.get_hocon_config(config_path="./config/main.conf", config_name="path")
 
-    utils.mkdir(config["caches-033"])
+    utils.mkdir(config["caches-tacl2022"])
 
     tokenizer = AutoTokenizer.from_pretrained("allenai/scibert_scivocab_uncased", additional_special_tokens=["<root>"])
+    # tokenizer = AutoTokenizer.from_pretrained("microsoft/BiomedNLP-PubMedBERT-base-uncased-abstract", additional_special_tokens=["<root>"])
     tokenizer_wrapper = BertTokenizerWrapper(tokenizer=tokenizer)
 
     dataset = preprocess(tokenizer_wrapper=tokenizer_wrapper, with_root=True)
 
-    path_output = os.path.join(config["caches-033"], "aasc-abst.scibert_scivocab_uncased.npy")
+    path_output = os.path.join(config["caches-tacl2022"], "cord19-abst.scibert_scivocab_uncased.npy")
+    # path_output = os.path.join(config["caches-tacl2022"], "cord19-abst.BiomedNLP-PubMedBERT-base-uncased-abstract.npy")
     np.save(path_output, dataset)
 
 
@@ -38,7 +40,7 @@ def preprocess(tokenizer_wrapper, with_root=False):
     """
     config = utils.get_hocon_config(config_path="./config/main.conf", config_name="path")
 
-    path_root = os.path.join(config["data"], "aasc-abst-compiled")
+    path_root = os.path.join(config["data"], "cord19-abst-compiled")
 
     # Reading
     dataset = []

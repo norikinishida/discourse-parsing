@@ -37,7 +37,7 @@ STAC_TO_MOLWENI = {
 def main():
     config = utils.get_hocon_config(config_path="./config/main.conf", config_name="path")
 
-    utils.mkdir(config["caches-033"])
+    utils.mkdir(config["caches-tacl2022"])
 
     tokenizer = AutoTokenizer.from_pretrained("bert-base-cased", additional_special_tokens=["<root>"])
     tokenizer_wrapper = BertTokenizerWrapper(tokenizer=tokenizer)
@@ -45,11 +45,11 @@ def main():
     for split in ["train", "dev", "test"]:
         dataset = preprocess(tokenizer_wrapper=tokenizer_wrapper, split=split)
 
-        path_output = os.path.join(config["caches-033"], "mapped-stac.%s.bert-base-cased.npy" % split)
+        path_output = os.path.join(config["caches-tacl2022"], "mapped-stac.%s.bert-base-cased.npy" % split)
         np.save(path_output, dataset)
 
         # Cache gold labels
-        path_output = os.path.join(config["caches-033"], "mapped-stac.%s.gold.arcs" % split)
+        path_output = os.path.join(config["caches-tacl2022"], "mapped-stac.%s.gold.arcs" % split)
         with open(path_output, "w") as f:
             for data in dataset:
                 arcs = ["%s-%s-%s" % (h,d,r) for (h,d,r) in data.arcs]

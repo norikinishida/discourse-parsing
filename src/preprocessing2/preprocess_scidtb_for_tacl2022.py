@@ -103,7 +103,7 @@ SCIDTB_TO_COVID19DTB = {
 def main():
     config = utils.get_hocon_config(config_path="./config/main.conf", config_name="path")
 
-    utils.mkdir(config["caches-033"])
+    utils.mkdir(config["caches-tacl2022"])
 
     tokenizer = AutoTokenizer.from_pretrained("allenai/scibert_scivocab_uncased", additional_special_tokens=["<root>"])
     # tokenizer = AutoTokenizer.from_pretrained("microsoft/BiomedNLP-PubMedBERT-base-uncased-abstract", additional_special_tokens=["<root>"])
@@ -116,12 +116,12 @@ def main():
                            ("test", "second_annotate")]:
         dataset = preprocess(tokenizer_wrapper=tokenizer_wrapper, split=split, sub_dir=sub_dir, relation_level="covid19-dtb")
 
-        path_output = os.path.join(config["caches-033"], "mapped-scidtb.%s-%s.scibert_scivocab_uncased.npy" % (split, sub_dir))
-        # path_output = os.path.join(config["caches-033"], "mapped-scidtb.%s-%s.BiomedNLP-PubMedBERT-base-uncased-abstract.npy" % (split, sub_dir))
+        path_output = os.path.join(config["caches-tacl2022"], "mapped-scidtb.%s-%s.scibert_scivocab_uncased.npy" % (split, sub_dir))
+        # path_output = os.path.join(config["caches-tacl2022"], "mapped-scidtb.%s-%s.BiomedNLP-PubMedBERT-base-uncased-abstract.npy" % (split, sub_dir))
         np.save(path_output, dataset)
 
         # Cache gold labels
-        path_output = os.path.join(config["caches-033"], "mapped-scidtb.%s-%s.gold.arcs" % (split, sub_dir))
+        path_output = os.path.join(config["caches-tacl2022"], "mapped-scidtb.%s-%s.gold.arcs" % (split, sub_dir))
         with open(path_output, "w") as f:
             for data in dataset:
                 arcs = ["%s-%s-%s" % (h,d,r) for (h,d,r) in data.arcs]

@@ -9,66 +9,40 @@ import utils
 import treetk
 
 from berttokenizerwrapper import BertTokenizerWrapper
-
-
-RELATION_MAP = {
-    "TEMPORAL": "CONDITION",
-    "TEXTUAL-ORGANIZATION": "ELABORATION",
-}
+from preprocess_speakers import SPEAKERS, rename_speaker_names
 
 
 def main():
     config = utils.get_hocon_config(config_path="./config/main.conf", config_name="path")
 
-    utils.mkdir(config["caches-033"])
+    utils.mkdir(config["caches-tacl2022"])
 
-    tokenizer = AutoTokenizer.from_pretrained("allenai/scibert_scivocab_uncased", additional_special_tokens=["<root>"])
-    # tokenizer = AutoTokenizer.from_pretrained("microsoft/BiomedNLP-PubMedBERT-base-uncased-abstract", additional_special_tokens=["<root>"])
+    tokenizer = AutoTokenizer.from_pretrained("bert-base-cased", additional_special_tokens=["<root>"])
     tokenizer_wrapper = BertTokenizerWrapper(tokenizer=tokenizer)
 
-    relations = []
-    for split in ["dev", "test"]:
-        dataset = preprocess(tokenizer_wrapper=tokenizer_wrapper, split=split)
+    dataset = preprocess(tokenizer_wrapper=tokenizer_wrapper)
 
-        path_output = os.path.join(config["caches-033"], "mapped-covid19-dtb.%s.scibert_scivocab_uncased.npy" % split)
-        # path_output = os.path.join(config["caches-033"], "mapped-covid19-dtb.%s.BiomedNLP-PubMedBERT-base-uncased-abstract.npy" % split)
-        np.save(path_output, dataset)
-
-        # Cache gold arcs
-        path_output = os.path.join(config["caches-033"], "mapped-covid19-dtb.%s.gold.arcs" % split)
-        with open(path_output, "w") as f:
-            for data in dataset:
-                arcs = ["%s-%s-%s" % (h,d,r) for (h,d,r) in data.arcs]
-                f.write("%s\n" % " ".join(arcs))
-
-        for data in dataset:
-            relations.extend([l for h, d, l in data.arcs])
-
-    relations = sorted(list(set(relations)))
-    utils.write_vocab(os.path.join(config["caches-033"], "mapped-covid19-dtb.relations.vocab.txt"),
-                     relations,
-                     write_frequency=False)
+    path_output = os.path.join(config["caches-tacl2022"], "ubuntu-dialogue-corpus.bert-base-cased.npy")
+    np.save(path_output, dataset)
 
 
-def preprocess(tokenizer_wrapper, split):
+def preprocess(tokenizer_wrapper):
     """
     Parameters
     ----------
     tokenizer_wrapper: BertTokenizerWrapper
-    split: str
 
     Returns
     -------
     numpy.ndarray(shape=(dataset_size,), dtype="O")
     """
-    assert split in ["dev", "test"]
 
     config = utils.get_hocon_config(config_path="./config/main.conf", config_name="path")
 
-    path_root = os.path.join(config["data"], "covid19-dtb-compiled", split)
-
     # Reading
     dataset = []
+
+    path_root = os.path.join(config["data"], "ubuntu-dialogue-corpus-compiled")
 
     filenames = os.listdir(path_root)
     filenames = [n for n in filenames if n.endswith(".json")]
@@ -82,8 +56,22 @@ def preprocess(tokenizer_wrapper, split):
         # File ID
         kargs["id"] = filename.replace(".json", "")
 
-        # EDUs
-        edus = [edu_info["tokens"].split() for edu_info in dictionary["edus"]]
+        # Mapping from a speaker name to a speaker ID
+        speaker_name_to_id = {}
+        for edu_info in dictionary["edus"]:
+            speaker = edu_info["speaker"]
+            if not speaker in speaker_name_to_id:
+                speaker_name_to_id[speaker] = len(speaker_name_to_id)
+        speaker_name_to_id_uncased = {n.lower(): id for n, id in speaker_name_to_id.items()}
+
+        # EDUs with speakers
+        edus = []
+        for edu_info in dictionary["edus"]:
+            tokens = edu_info["tokens"].split()
+            tokens = rename_speaker_names(tokens=tokens, speaker_name_to_id_uncased=speaker_name_to_id_uncased)
+            speaker_name = SPEAKERS[speaker_name_to_id[edu_info["speaker"]]]
+            prefix = [speaker_name, ":"]
+            edus.append(prefix + tokens) # NOTE: Each EDU contains the speaker name and colon as prefix
         edus = [["<root>"]] + edus
         kargs["edus"] = edus
 
@@ -91,21 +79,21 @@ def preprocess(tokenizer_wrapper, split):
         edu_ids = np.arange(len(edus)).tolist()
         kargs["edu_ids"] = edu_ids
 
-         # EDUs (POS tags)
+        # EDUs (POS tags)
         if "postags" in dictionary["edus"][0]:
-            edus_postag = [edu_info["postags"].split() for edu_info in dictionary["edus"]]
+            edus_postag = [["NNP", ":"] + edu_info["postags"].split() for edu_info in dictionary["edus"]]
             edus_postag = [["<root>"]] + edus_postag
             kargs["edus_postag"] = edus_postag
 
         # EDUs (dependency relations)
         if "arcs" in dictionary["edus"][0]:
-            edus_deprel = [[l for h,d,l in treetk.hyphens2arcs(edu_info["arcs"].split())] for edu_info in dictionary["edus"]]
+            edus_deprel = [["ROOT", "punct"] + [l for h,d,l in treetk.hyphens2arcs(edu_info["arcs"].split())] for edu_info in dictionary["edus"]]
             edus_deprel = [["<root>"]] + edus_deprel
             kargs["edus_deprel"] = edus_deprel
 
         # EDUs (head)
         if "head" in dictionary["edus"][0]:
-            edus_head = [int(edu_info["head"]) for edu_info in dictionary["edus"]]
+            edus_head = [2 + int(edu_info["head"]) for edu_info in dictionary["edus"]] # NOTE: shifted by +2
             edus_head = [0] + edus_head
             kargs["edus_head"] = edus_head
             use_head = True
@@ -122,12 +110,6 @@ def preprocess(tokenizer_wrapper, split):
         else:
             paragraph_boundaries = [(0, len(sentence_boundaries) - 1)]
         kargs["paragraph_boundaries"] = paragraph_boundaries
-
-        # Dependency tree
-        hyphens = dictionary["arcs"].split()
-        arcs = treetk.hyphens2arcs(hyphens) # list of (int, int, str)
-        arcs = [(h,d,RELATION_MAP.get(l,l)) for h,d,l in arcs] # NOTE
-        kargs["arcs"] = arcs
 
         # BERT inputs
         segments, segments_id, segments_mask, edu_begin_indices, edu_end_indices, edu_head_indices \
@@ -157,44 +139,12 @@ def preprocess(tokenizer_wrapper, split):
     n_edus = 0
     for data in dataset:
         n_edus += len(data.edus[1:]) # Exclude the ROOT
-    utils.writelog("split: %s" % split)
     utils.writelog("# of documents: %d" % n_docs)
     utils.writelog("# of paragraphs: %d" % n_paras)
     utils.writelog("# of sentences: %d" % n_sents)
     utils.writelog("# of EDUs (w/o ROOTs): %d" % n_edus)
 
     return dataset
-
-
-def extract_labels():
-    """
-    Returns
-    -------
-    list[(str, int)]
-    """
-    config = utils.get_hocon_config(config_path="./config/main.conf", config_name="path")
-
-    relations = []
-
-    filenames = []
-    for filename in os.listdir(os.path.join(config["data"], "covid19-dtb-compiled", "dev")):
-        filenames.append(os.path.join(config["data"], "covid19-dtb-compiled", "dev", filename))
-    for filename in os.listdir(os.path.join(config["data"], "covid19-dtb-compiled", "test")):
-        filenames.append(os.path.join(config["data"], "covid19-dtb-compiled", "test", filename))
-    filenames = [n for n in filenames if n.endswith(".json")]
-    filenames.sort()
-
-    for filename in pyprind.prog_bar(filenames):
-        dictionary = utils.read_json(filename)
-        hyphens = dictionary["arcs"].split()
-        arcs = treetk.hyphens2arcs(hyphens)
-
-        part_relations = [l for h,d,l in arcs]
-        relations.append(part_relations)
-
-    counter = utils.get_word_counter(lines=relations)
-    relations = counter.most_common()
-    return relations
 
 
 if __name__ == "__main__":

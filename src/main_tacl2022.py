@@ -50,7 +50,7 @@ def main(args):
     # Paths
     ##################
 
-    base_dir = "bootstrapping.%s" % config_name
+    base_dir = "tacl2022.%s" % config_name
 
     utils.mkdir(os.path.join(config["results"], base_dir))
 
@@ -80,11 +80,11 @@ def main(args):
 
     # Gold data for validation and evaluation
     if config["test_dataset_name"] == "covid19-dtb":
-        path_valid_gold = os.path.join(config["caches-033"], "mapped-covid19-dtb.dev.gold.arcs")
-        path_test_gold = os.path.join(config["caches-033"], "mapped-covid19-dtb.test.gold.arcs")
+        path_valid_gold = os.path.join(config["caches-tacl2022"], "mapped-covid19-dtb.dev.gold.arcs")
+        path_test_gold = os.path.join(config["caches-tacl2022"], "mapped-covid19-dtb.test.gold.arcs")
     elif config["test_dataset_name"] == "molweni":
-        path_valid_gold = os.path.join(config["caches-033"], "molweni.dev.gold.arcs")
-        path_test_gold = os.path.join(config["caches-033"], "molweni.test.gold.arcs")
+        path_valid_gold = os.path.join(config["caches-tacl2022"], "molweni.dev.gold.arcs")
+        path_test_gold = os.path.join(config["caches-tacl2022"], "molweni.test.gold.arcs")
     else:
         raise Exception("Never occur.")
 
@@ -121,9 +121,9 @@ def main(args):
 
     # Read a training labeled dataset
     if config["train_labeled_dataset_name"] == "scidtb":
-        labeled_dataset = np.load(os.path.join(config["caches-033"], "mapped-scidtb.train-.scibert_scivocab_uncased.npy"), allow_pickle=True)
+        labeled_dataset = np.load(os.path.join(config["caches-tacl2022"], "mapped-scidtb.train-.scibert_scivocab_uncased.npy"), allow_pickle=True)
     elif config["train_labeled_dataset_name"] == "stac":
-        labeled_dataset = np.load(os.path.join(config["caches-033"], "mapped-stac.train.bert-base-cased.npy"), allow_pickle=True)
+        labeled_dataset = np.load(os.path.join(config["caches-tacl2022"], "mapped-stac.train.bert-base-cased.npy"), allow_pickle=True)
     else:
         raise Exception("Never occur.")
 
@@ -148,11 +148,11 @@ def main(args):
 
     # Read development and test datasets
     if config["test_dataset_name"] == "covid19-dtb":
-        dev_dataset = np.load(os.path.join(config["caches-033"], "mapped-covid19-dtb.dev.scibert_scivocab_uncased.npy"), allow_pickle=True)
-        test_dataset = np.load(os.path.join(config["caches-033"], "mapped-covid19-dtb.test.scibert_scivocab_uncased.npy"), allow_pickle=True)
+        dev_dataset = np.load(os.path.join(config["caches-tacl2022"], "mapped-covid19-dtb.dev.scibert_scivocab_uncased.npy"), allow_pickle=True)
+        test_dataset = np.load(os.path.join(config["caches-tacl2022"], "mapped-covid19-dtb.test.scibert_scivocab_uncased.npy"), allow_pickle=True)
     elif config["test_dataset_name"] == "molweni":
-        dev_dataset = np.load(os.path.join(config["caches-033"], "molweni.dev.bert-base-cased.npy"), allow_pickle=True)
-        test_dataset = np.load(os.path.join(config["caches-033"], "molweni.test.bert-base-cased.npy"), allow_pickle=True)
+        dev_dataset = np.load(os.path.join(config["caches-tacl2022"], "molweni.dev.bert-base-cased.npy"), allow_pickle=True)
+        test_dataset = np.load(os.path.join(config["caches-tacl2022"], "molweni.test.bert-base-cased.npy"), allow_pickle=True)
     else:
          raise Exception("Never occur.")
 
@@ -162,9 +162,9 @@ def main(args):
 
     # Read a training unlabeled dataset
     if config["train_unlabeled_dataset_name"] == "cord19-abst":
-        unlabeled_dataset = np.load(os.path.join(config["caches-033"], "cord19-abst.scibert_scivocab_uncased.npy"), allow_pickle=True)
+        unlabeled_dataset = np.load(os.path.join(config["caches-tacl2022"], "cord19-abst.scibert_scivocab_uncased.npy"), allow_pickle=True)
     elif config["train_unlabeled_dataset_name"] == "ubuntu-dialogue-corpus":
-        unlabeled_dataset = np.load(os.path.join(config["caches-033"], "ubuntu-dialogue-corpus.bert-base-cased.npy"), allow_pickle=True)
+        unlabeled_dataset = np.load(os.path.join(config["caches-tacl2022"], "ubuntu-dialogue-corpus.bert-base-cased.npy"), allow_pickle=True)
     else:
         raise Exception("Never occur.")
 
@@ -192,9 +192,9 @@ def main(args):
 
     # Read relation class vocabulary
     if config["train_labeled_dataset_name"] == "scidtb" and config["test_dataset_name"] == "covid19-dtb":
-        vocab_relation = utils.read_vocab(os.path.join(config["caches-033"], "mapped-covid19-dtb.relations.vocab.txt"))
+        vocab_relation = utils.read_vocab(os.path.join(config["caches-tacl2022"], "mapped-covid19-dtb.relations.vocab.txt"))
     elif config["train_labeled_dataset_name"] == "stac" and config["test_dataset_name"] == "molweni":
-        vocab_relation = utils.read_vocab(os.path.join(config["caches-033"], "molweni.relations.vocab.txt"))
+        vocab_relation = utils.read_vocab(os.path.join(config["caches-tacl2022"], "molweni.relations.vocab.txt"))
     else:
         raise Exception("Never occur.")
     utils.writelog("Relation vocabulary: %s" % utils.pretty_format_dict(vocab_relation))

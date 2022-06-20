@@ -9,40 +9,39 @@ import utils
 import treetk
 
 from berttokenizerwrapper import BertTokenizerWrapper
-from preprocess_speakers import SPEAKERS, rename_speaker_names
 
 
 def main():
     config = utils.get_hocon_config(config_path="./config/main.conf", config_name="path")
 
-    utils.mkdir(config["caches-033"])
+    utils.mkdir(config["caches-tacl2022"])
 
-    tokenizer = AutoTokenizer.from_pretrained("bert-base-cased", additional_special_tokens=["<root>"])
+    tokenizer = AutoTokenizer.from_pretrained("allenai/scibert_scivocab_uncased", additional_special_tokens=["<root>"])
     tokenizer_wrapper = BertTokenizerWrapper(tokenizer=tokenizer)
 
-    dataset = preprocess(tokenizer_wrapper=tokenizer_wrapper)
+    dataset = preprocess(tokenizer_wrapper=tokenizer_wrapper, with_root=True)
 
-    path_output = os.path.join(config["caches-033"], "ubuntu-dialogue-corpus.bert-base-cased.npy")
+    path_output = os.path.join(config["caches-tacl2022"], "aasc-abst.scibert_scivocab_uncased.npy")
     np.save(path_output, dataset)
 
 
-def preprocess(tokenizer_wrapper):
+def preprocess(tokenizer_wrapper, with_root=False):
     """
     Parameters
     ----------
     tokenizer_wrapper: BertTokenizerWrapper
+    with_root: bool
 
     Returns
     -------
     numpy.ndarray(shape=(dataset_size,), dtype="O")
     """
-
     config = utils.get_hocon_config(config_path="./config/main.conf", config_name="path")
+
+    path_root = os.path.join(config["data"], "aasc-abst-compiled")
 
     # Reading
     dataset = []
-
-    path_root = os.path.join(config["data"], "ubuntu-dialogue-corpus-compiled")
 
     filenames = os.listdir(path_root)
     filenames = [n for n in filenames if n.endswith(".json")]
@@ -56,23 +55,10 @@ def preprocess(tokenizer_wrapper):
         # File ID
         kargs["id"] = filename.replace(".json", "")
 
-        # Mapping from a speaker name to a speaker ID
-        speaker_name_to_id = {}
-        for edu_info in dictionary["edus"]:
-            speaker = edu_info["speaker"]
-            if not speaker in speaker_name_to_id:
-                speaker_name_to_id[speaker] = len(speaker_name_to_id)
-        speaker_name_to_id_uncased = {n.lower(): id for n, id in speaker_name_to_id.items()}
-
-        # EDUs with speakers
-        edus = []
-        for edu_info in dictionary["edus"]:
-            tokens = edu_info["tokens"].split()
-            tokens = rename_speaker_names(tokens=tokens, speaker_name_to_id_uncased=speaker_name_to_id_uncased)
-            speaker_name = SPEAKERS[speaker_name_to_id[edu_info["speaker"]]]
-            prefix = [speaker_name, ":"]
-            edus.append(prefix + tokens) # NOTE: Each EDU contains the speaker name and colon as prefix
-        edus = [["<root>"]] + edus
+        # EDUs
+        edus = [edu_info["tokens"].split() for edu_info in dictionary["edus"]]
+        if with_root:
+            edus = [["<root>"]] + edus
         kargs["edus"] = edus
 
         # EDU IDs
@@ -81,20 +67,23 @@ def preprocess(tokenizer_wrapper):
 
         # EDUs (POS tags)
         if "postags" in dictionary["edus"][0]:
-            edus_postag = [["NNP", ":"] + edu_info["postags"].split() for edu_info in dictionary["edus"]]
-            edus_postag = [["<root>"]] + edus_postag
+            edus_postag = [edu_info["postags"].split() for edu_info in dictionary["edus"]]
+            if with_root:
+                edus_postag = [["<root>"]] + edus_postag
             kargs["edus_postag"] = edus_postag
 
         # EDUs (dependency relations)
         if "arcs" in dictionary["edus"][0]:
-            edus_deprel = [["ROOT", "punct"] + [l for h,d,l in treetk.hyphens2arcs(edu_info["arcs"].split())] for edu_info in dictionary["edus"]]
-            edus_deprel = [["<root>"]] + edus_deprel
+            edus_deprel = [[l for h,d,l in treetk.hyphens2arcs(edu_info["arcs"].split())] for edu_info in dictionary["edus"]]
+            if with_root:
+                edus_deprel = [["<root>"]] + edus_deprel
             kargs["edus_deprel"] = edus_deprel
 
         # EDUs (head)
         if "head" in dictionary["edus"][0]:
-            edus_head = [2 + int(edu_info["head"]) for edu_info in dictionary["edus"]] # NOTE: shifted by +2
-            edus_head = [0] + edus_head
+            edus_head = [int(edu_info["head"]) for edu_info in dictionary["edus"]]
+            if with_root:
+                edus_head = [0] + edus_head
             kargs["edus_head"] = edus_head
             use_head = True
         else:
@@ -138,7 +127,10 @@ def preprocess(tokenizer_wrapper):
         n_sents += len(data.sentence_boundaries)
     n_edus = 0
     for data in dataset:
-        n_edus += len(data.edus[1:]) # Exclude the ROOT
+        if with_root:
+            n_edus += len(data.edus[1:]) # Exclude the ROOT
+        else:
+            n_edus += len(data.edus)
     utils.writelog("# of documents: %d" % n_docs)
     utils.writelog("# of paragraphs: %d" % n_paras)
     utils.writelog("# of sentences: %d" % n_sents)
