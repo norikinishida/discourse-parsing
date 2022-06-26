@@ -124,10 +124,10 @@ Results are stored in the `<results>/<parser_type>.<config_name>` directory, whe
 
 Outputs:
 - Log: `<results>/<parser_type>.<config_name>/<prefix>.training.log`
-- Training losses: `<results>/<parser_type>.<config_name>/<prefix>.training.jsonl`
+- Training losses: `<results>/<parser_type>.<config_name>/<prefix>.train.losses.jsonl`
 - Model parameters: `<results>/<parser_type>.<config_name>/<prefix>.model`
-- Validation outputs: `<results>/<parser_type>.<config_name>/<prefix>.validation.arcs`
-- Validation scores: `<results>/<parser_type>.<config_name>/<prefix>.validation.jsonl`
+- Validation outputs: `<results>/<parser_type>.<config_name>/<prefix>.valid.pred.arcs`
+- Validation scores: `<results>/<parser_type>.<config_name>/<prefix>.valid.eval.jsonl`
 
 `<prefix>` is automatically determined based on the execution time, .e.g, `Jun09_01-23-45`.
 
@@ -150,8 +150,8 @@ Results are stored in the `<results>/<parser_type>.<config_name>` directory.
 Outputs:
 
 - Log: `<results>/<parser_type>.<config_name>/<prefix>.evaluation.log`
-- Evaluation outputs: `<results>/<parser_type>.<config_name>/<prefix>.evaluation.arcs`
-- Evaluation outputs (SciDTB format): `<results>/<parser_type>.<config_name>/<prefix>.evaluation.arcs.dep/*.dep`
-- Evaluation scores: `<results>/<parser_type>.<config_name>/<prefix>.evaluation.json`
+- Evaluation outputs: `<results>/<parser_type>.<config_name>/<prefix>.test.pred.arcs`
+- Evaluation outputs (SciDTB format): `<results>/<parser_type>.<config_name>/<prefix>.test.pred.arcs.dep/*.dep`
+- Evaluation scores: `<results>/<parser_type>.<config_name>/<prefix>.test.eval.json`
 
 

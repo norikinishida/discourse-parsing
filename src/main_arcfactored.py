@@ -53,18 +53,18 @@ def main(args):
         path_log = os.path.join(config["results"], base_dir, prefix + ".evaluation.log")
 
     # Training loss and etc.
-    path_train_jsonl = os.path.join(config["results"], base_dir, prefix + ".training.jsonl")
+    path_train_losses = os.path.join(config["results"], base_dir, prefix + ".training.losses.jsonl")
 
     # Model snapshot
     path_snapshot = os.path.join(config["results"], base_dir, prefix + ".model")
 
     # Validation outputs and scores
-    path_valid_pred = os.path.join(config["results"], base_dir, prefix + ".validation.arcs")
-    path_valid_jsonl = os.path.join(config["results"], base_dir, prefix + ".validation.jsonl")
+    path_valid_pred = os.path.join(config["results"], base_dir, prefix + ".valid.pred.arcs")
+    path_valid_eval = os.path.join(config["results"], base_dir, prefix + ".valid.eval.jsonl")
 
     # Evaluation outputs and scores
-    path_test_pred = os.path.join(config["results"], base_dir, prefix + ".evaluation.arcs")
-    path_test_json = os.path.join(config["results"], base_dir, prefix + ".evaluation.json")
+    path_test_pred = os.path.join(config["results"], base_dir, prefix + ".test.pred.arcs")
+    path_test_eval = os.path.join(config["results"], base_dir, prefix + ".test.eval.json")
 
     # Gold data for validation and evaluation
     if config["dataset_name"] == "rstdt":
@@ -92,14 +92,14 @@ def main(args):
     utils.writelog(utils.pretty_format_dict(config))
 
     utils.writelog("path_log: %s" % path_log)
-    utils.writelog("path_train_jsonl: %s" % path_train_jsonl)
+    utils.writelog("path_train_losses: %s" % path_train_losses)
     utils.writelog("path_snapshot: %s" % path_snapshot)
     utils.writelog("path_valid_pred: %s" % path_valid_pred)
     utils.writelog("path_valid_gold: %s" % path_valid_gold)
-    utils.writelog("path_valid_jsonl: %s" % path_valid_jsonl)
+    utils.writelog("path_valid_eval: %s" % path_valid_eval)
     utils.writelog("path_test_pred: %s" % path_test_pred)
     utils.writelog("path_test_gold: %s" % path_test_gold)
-    utils.writelog("path_test_json: %s" % path_test_json)
+    utils.writelog("path_test_eval: %s" % path_test_eval)
 
     ##################
     # Datasets
@@ -164,11 +164,11 @@ def main(args):
             parser=parser,
             train_dataset=train_dataset,
             dev_dataset=dev_dataset,
-            path_train_jsonl=path_train_jsonl,
+            path_train_losses=path_train_losses,
             path_snapshot=path_snapshot,
             path_valid_pred=path_valid_pred,
             path_valid_gold=path_valid_gold,
-            path_valid_jsonl=path_valid_jsonl)
+            path_valid_eval=path_valid_eval)
 
     elif actiontype == "evaluate":
         with torch.no_grad():
@@ -183,20 +183,20 @@ def main(args):
             scores["UAS"] *= 100.0
             scores["UUAS"] *= 100.0
             scores["RA"] *= 100.0
-            utils.write_json(path_test_json, scores)
+            utils.write_json(path_test_eval, scores)
             utils.writelog(utils.pretty_format_dict(scores))
             shared_functions.save_prediction_as_scidtb_format(dataset=test_dataset, path_pred=path_test_pred)
 
 
     utils.writelog("path_log: %s" % path_log)
-    utils.writelog("path_train_jsonl: %s" % path_train_jsonl)
+    utils.writelog("path_train_losses: %s" % path_train_losses)
     utils.writelog("path_snapshot: %s" % path_snapshot)
     utils.writelog("path_valid_pred: %s" % path_valid_pred)
     utils.writelog("path_valid_gold: %s" % path_valid_gold)
-    utils.writelog("path_valid_jsonl: %s" % path_valid_jsonl)
+    utils.writelog("path_valid_eval: %s" % path_valid_eval)
     utils.writelog("path_test_pred: %s" % path_test_pred)
     utils.writelog("path_test_gold: %s" % path_test_gold)
-    utils.writelog("path_test_json: %s" % path_test_json)
+    utils.writelog("path_test_eval: %s" % path_test_eval)
     utils.writelog("Done.")
     sw.stop("main")
     utils.writelog("Time: %f min." % sw.get_time("main", minute=True))
@@ -211,11 +211,11 @@ def train(config,
           parser,
           train_dataset,
           dev_dataset,
-          path_train_jsonl,
+          path_train_losses,
           path_snapshot,
           path_valid_pred,
           path_valid_gold,
-          path_valid_jsonl):
+          path_valid_eval):
     """
     Parameters
     -----------
@@ -223,11 +223,11 @@ def train(config,
     parser: ArcFactoredParser
     train_dataset: numpy.ndarray
     dev_dataset: numpy.ndarray
-    path_train_jsonl: str
+    path_train_losses: str
     path_snapshot: str
     path_valid_pred: str
     path_valid_gold: str
-    path_valid_jsonl: str
+    path_valid_eval: str
     """
     # Get optimizers and schedulers
     n_train = len(train_dataset)
@@ -246,8 +246,8 @@ def train(config,
     utils.writelog("total_update_steps: %d" % total_update_steps)
     utils.writelog("warmup_steps: %d" % warmup_steps)
 
-    writer_train = jsonlines.Writer(open(path_train_jsonl, "w"), flush=True)
-    writer_valid = jsonlines.Writer(open(path_valid_jsonl, "w"), flush=True)
+    writer_train = jsonlines.Writer(open(path_train_losses, "w"), flush=True)
+    writer_valid = jsonlines.Writer(open(path_valid_eval, "w"), flush=True)
     bestscore_holder = utils.BestScoreHolder(scale=1.0)
     bestscore_holder.init()
     step = 0
