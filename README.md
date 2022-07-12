@@ -126,8 +126,8 @@ Outputs:
 - Log: `<results>/<parser_type>.<config_name>/<prefix>.training.log`
 - Training losses: `<results>/<parser_type>.<config_name>/<prefix>.train.losses.jsonl`
 - Model parameters: `<results>/<parser_type>.<config_name>/<prefix>.model`
-- Validation outputs: `<results>/<parser_type>.<config_name>/<prefix>.valid.pred.arcs`
-- Validation scores: `<results>/<parser_type>.<config_name>/<prefix>.valid.eval.jsonl`
+- Validation outputs: `<results>/<parser_type>.<config_name>/<prefix>.dev.pred.arcs`
+- Validation scores: `<results>/<parser_type>.<config_name>/<prefix>.dev.eval.jsonl`
 
 `<prefix>` is automatically determined based on the execution time, .e.g, `Jun09_01-23-45`.
 
