@@ -71,8 +71,8 @@ def main(args):
     path_ann = os.path.join(config["results"], base_dir, prefix + ".annotation.arcs")
 
     # Validation outputs and scores
-    path_valid_pred = os.path.join(config["results"], base_dir, prefix + ".valid.pred.arcs")
-    path_valid_eval = os.path.join(config["results"], base_dir, prefix + ".valid.eval.jsonl")
+    path_dev_pred = os.path.join(config["results"], base_dir, prefix + ".dev.pred.arcs")
+    path_dev_eval = os.path.join(config["results"], base_dir, prefix + ".dev.eval.jsonl")
 
     # Evaluation outputs and scores
     path_test_pred = os.path.join(config["results"], base_dir, prefix + ".test.pred.arcs")
@@ -80,10 +80,10 @@ def main(args):
 
     # Gold data for validation and evaluation
     if config["test_dataset_name"] == "covid19-dtb":
-        path_valid_gold = os.path.join(config["caches-tacl2022"], "mapped-covid19-dtb.dev.gold.arcs")
+        path_dev_gold = os.path.join(config["caches-tacl2022"], "mapped-covid19-dtb.dev.gold.arcs")
         path_test_gold = os.path.join(config["caches-tacl2022"], "mapped-covid19-dtb.test.gold.arcs")
     elif config["test_dataset_name"] == "molweni":
-        path_valid_gold = os.path.join(config["caches-tacl2022"], "molweni.dev.gold.arcs")
+        path_dev_gold = os.path.join(config["caches-tacl2022"], "molweni.dev.gold.arcs")
         path_test_gold = os.path.join(config["caches-tacl2022"], "molweni.test.gold.arcs")
     else:
         raise Exception("Never occur.")
@@ -102,9 +102,9 @@ def main(args):
     utils.writelog("path_train_losses: %s" % path_train_losses)
     utils.writelog("path_snapshot: %s" % path_snapshot)
     utils.writelog("path_ann: %s" % path_ann)
-    utils.writelog("path_valid_pred: %s" % path_valid_pred)
-    utils.writelog("path_valid_gold: %s" % path_valid_gold)
-    utils.writelog("path_valid_eval: %s" % path_valid_eval)
+    utils.writelog("path_dev_pred: %s" % path_dev_pred)
+    utils.writelog("path_dev_gold: %s" % path_dev_gold)
+    utils.writelog("path_dev_eval: %s" % path_dev_eval)
     utils.writelog("path_test_pred: %s" % path_test_pred)
     utils.writelog("path_test_gold: %s" % path_test_gold)
     utils.writelog("path_test_eval: %s" % path_test_eval)
@@ -201,7 +201,7 @@ def main(args):
 
     utils.writelog("Number of training labeled data: %d" % len(labeled_dataset))
     utils.writelog("Number of training unlabeled documents: %d" % len(unlabeled_dataset))
-    utils.writelog("Number of validation data: %d" % len(dev_dataset))
+    utils.writelog("Number of development data: %d" % len(dev_dataset))
     utils.writelog("Number of test data: %d" % len(test_dataset))
 
     sw.stop("data")
@@ -283,9 +283,9 @@ def main(args):
             path_train_losses=path_train_losses,
             path_snapshot=path_snapshot,
             path_ann=path_ann,
-            path_valid_pred=path_valid_pred,
-            path_valid_gold=path_valid_gold,
-            path_valid_eval=path_valid_eval)
+            path_dev_pred=path_dev_pred,
+            path_dev_gold=path_dev_gold,
+            path_dev_eval=path_dev_eval)
 
     elif actiontype == "evaluate":
         with torch.no_grad():
@@ -310,9 +310,9 @@ def main(args):
     utils.writelog("path_train_losses: %s" % path_train_losses)
     utils.writelog("path_snapshot: %s" % path_snapshot)
     utils.writelog("path_ann: %s" % path_ann)
-    utils.writelog("path_valid_pred: %s" % path_valid_pred)
-    utils.writelog("path_valid_gold: %s" % path_valid_gold)
-    utils.writelog("path_valid_eval: %s" % path_valid_eval)
+    utils.writelog("path_dev_pred: %s" % path_dev_pred)
+    utils.writelog("path_dev_gold: %s" % path_dev_gold)
+    utils.writelog("path_dev_eval: %s" % path_dev_eval)
     utils.writelog("path_test_pred: %s" % path_test_pred)
     utils.writelog("path_test_gold: %s" % path_test_gold)
     utils.writelog("path_test_eval: %s" % path_test_eval)
@@ -349,9 +349,9 @@ def train(
         path_train_losses,
         path_snapshot,
         path_ann,
-        path_valid_pred,
-        path_valid_gold,
-        path_valid_eval):
+        path_dev_pred,
+        path_dev_gold,
+        path_dev_eval):
     """
     Parameters
     ----------
@@ -363,9 +363,9 @@ def train(
     path_train_losses: str
     path_snapshot: str
     path_ann: str
-    path_valid_pred: str
-    path_valid_gold: str
-    path_valid_eval: str
+    path_dev_pred: str
+    path_dev_gold: str
+    path_dev_eval: str
     """
     n_parsers = len(parser_list)
 
@@ -408,7 +408,7 @@ def train(
     utils.writelog("warmup_steps: %d" % warmup_steps)
 
     writer_train = jsonlines.Writer(open(path_train_losses, "w"), flush=True)
-    writer_valid = jsonlines.Writer(open(path_valid_eval, "w"), flush=True)
+    writer_dev = jsonlines.Writer(open(path_dev_eval, "w"), flush=True)
     bestscore_holders = {}
     bestscore_holders["joint"] = utils.BestScoreHolder(scale=1.0)
     bestscore_holders["joint"].init()
@@ -434,16 +434,16 @@ def train(
             parse(
                 parser=parser_list[p_i],
                 dataset=dev_dataset,
-                path_pred=add_parser_id_to_path(path_valid_pred, p_i))
+                path_pred=add_parser_id_to_path(path_dev_pred, p_i))
             scores = metrics.attachment_scores(
-                            pred_path=add_parser_id_to_path(path_valid_pred, p_i),
-                            gold_path=path_valid_gold)
+                            pred_path=add_parser_id_to_path(path_dev_pred, p_i),
+                            gold_path=path_dev_gold)
             scores["LAS"] *= 100.0
             scores["UAS"] *= 100.0
             scores["UUAS"] *= 100.0
             scores["RA"] *= 100.0
             scores["epoch"] = 0
-            writer_valid.write(scores)
+            writer_dev.write(scores)
             utils.writelog(utils.pretty_format_dict(scores))
 
             bestscore_holders["independent"][p_i].compare_scores(scores["LAS"], 0)
@@ -773,16 +773,16 @@ def train(
                 parse(
                     parser=parser_list[p_i],
                     dataset=dev_dataset,
-                    path_pred=add_parser_id_to_path(path_valid_pred, p_i))
+                    path_pred=add_parser_id_to_path(path_dev_pred, p_i))
                 scores = metrics.attachment_scores(
-                            pred_path=add_parser_id_to_path(path_valid_pred, p_i),
-                            gold_path=path_valid_gold)
+                            pred_path=add_parser_id_to_path(path_dev_pred, p_i),
+                            gold_path=path_dev_gold)
                 scores["LAS"] *= 100.0
                 scores["UAS"] *= 100.0
                 scores["UUAS"] *= 100.0
                 scores["RA"] *= 100.0
                 scores["epoch"] = epoch
-                writer_valid.write(scores)
+                writer_dev.write(scores)
                 utils.writelog(utils.pretty_format_dict(scores))
 
                 did_update = bestscore_holders["independent"][p_i].compare_scores(scores["LAS"], epoch)
@@ -803,7 +803,7 @@ def train(
         if bestscore_holders["joint"].ask_finishing(max_patience=10):
             utils.writelog("Patience %d is over. Training finished successfully." % bestscore_holders["joint"].patience)
             writer_train.close()
-            writer_valid.close()
+            writer_dev.close()
             return
 
         ##################
@@ -815,7 +815,7 @@ def train(
     ##################
 
     writer_train.close()
-    writer_valid.close()
+    writer_dev.close()
 
 
 def get_optimizer_for_further_finetuning(model, config):
