@@ -16,7 +16,7 @@ def main(args):
 
     utils.mkdir(path_out)
 
-    nlp_no_ssplit = spacy.load("en_core_web_sm", diable=["ner", "textcat"])
+    nlp_no_ssplit = spacy.load("en_core_web_sm", disable=["ner", "textcat"])
     nlp_no_ssplit.tokenizer = nlp_no_ssplit.tokenizer.tokens_from_list
     nlp_no_ssplit.add_pipe(prevent_sentence_boundary_detection, name="prevent-sbd", before="parser")
 
