@@ -10,7 +10,7 @@ AASC=/home/nishida/storage/dataset/AASC-v4/AASC_v4.sentence
 CORD19=/home/nishida/storage/dataset/CORD-19-Snapshot-20200928/document_parses
 UDC=/home/nishida/storage/dataset/Ubuntu-Dialogue-Corpus-v2/ubuntu-ranking-dataset-creator/src
 
-STORAGE=/home/nishida/storage/projects/discourse/discourse-parsing
+STORAGE=/home/nishida/storage/projects/discourse-parsing
 STORAGE_DATA=${STORAGE}/data
 
 
